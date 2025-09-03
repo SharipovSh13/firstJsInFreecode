@@ -9,3 +9,7 @@ y--;
 console.log(y);
 
 console.log(++y);
+let counter = 1;
+
+console.log(2 * ++counter);
+console.log(2 * counter++);
