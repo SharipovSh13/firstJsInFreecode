@@ -1,11 +1,371 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Камень, ножницы, бумага</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --panel: #121a2b;
+        --muted: #93a1b1;
+        --text: #e6ecf1;
+        --accent: #4f8cff;
+        --win: #1b873f;
+        --lose: #b4232a;
+        --draw: #8a8f98;
+        --radius: 16px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
+          Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--text);
+        background: radial-gradient(
+          1200px 800px at 50% -200px,
+          #1b2741 0%,
+          var(--bg) 55%
+        );
+        display: grid;
+        place-items: center;
+      }
+      .app {
+        width: min(720px, 92vw);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.03),
+          rgba(255, 255, 255, 0.01)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--radius);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        padding: 24px;
+        backdrop-filter: blur(6px);
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      h1 {
+        font-size: clamp(20px, 2.4vw, 26px);
+        margin: 0;
+        letter-spacing: 0.3px;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .scoreboard {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin: 16px 0 10px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        text-align: center;
+      }
+      .card h2 {
+        margin: 0 0 4px;
+        font-size: 14px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .card .value {
+        font-size: clamp(22px, 4vw, 32px);
+        font-weight: 700;
+      }
+
+      .buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin: 14px 0 6px;
+      }
+      button.choice {
+        appearance: none;
+        background: #0f1729;
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--radius);
+        padding: 16px 14px;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+        transition: transform 0.08s ease, box-shadow 0.2s ease,
+          border-color 0.2s ease;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+      }
+      button.choice:hover {
+        transform: translateY(-2px);
+      }
+      button.choice:active {
+        transform: translateY(0);
+      }
+      button.choice kbd {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+        margin-left: 8px;
+      }
+
+      .result {
+        margin: 10px 0 2px;
+        font-size: clamp(16px, 2.2vw, 18px);
+        line-height: 1.5;
+      }
+      .result .status {
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 999px;
+      }
+      .status.win {
+        background: color-mix(in oklab, var(--win) 22%, transparent);
+        color: #b7f0c9;
+        border: 1px solid color-mix(in oklab, var(--win) 45%, transparent);
+      }
+      .status.lose {
+        background: color-mix(in oklab, var(--lose) 22%, transparent);
+        color: #ffc6c9;
+        border: 1px solid color-mix(in oklab, var(--lose) 45%, transparent);
+      }
+      .status.draw {
+        background: color-mix(in oklab, var(--draw) 22%, transparent);
+        color: #d8dbe0;
+        border: 1px solid color-mix(in oklab, var(--draw) 45%, transparent);
+      }
+
+      .bar {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .bar .left {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .pill {
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #0f1729;
+        color: var(--muted);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .icon {
+        font-size: 22px;
+      }
+
+      .reset {
+        margin-left: auto;
+        background: transparent;
+        color: var(--muted);
+        border: 1px dashed rgba(255, 255, 255, 0.2);
+        padding: 8px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      .reset:hover {
+        color: var(--text);
+        border-style: solid;
+      }
+
+      footer {
+        margin-top: 12px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
   </head>
   <body>
-    <script src="main.js"></script>
+    <main
+      class="app"
+      role="application"
+      aria-label="Игра: Камень, ножницы, бумага"
+    >
+      <header>
+        <div>
+          <h1>Камень, ножницы, бумага</h1>
+          <div class="muted">
+            Выберите ход или используйте клавиши <kbd>R</kbd>, <kbd>P</kbd>,
+            <kbd>S</kbd>.
+          </div>
+        </div>
+        <button class="reset" id="resetBtn" aria-label="Сбросить счёт">
+          Сбросить
+        </button>
+      </header>
+
+      <section class="scoreboard" aria-live="polite">
+        <div class="card">
+          <h2>Победы</h2>
+          <div id="wins" class="value">0</div>
+        </div>
+        <div class="card">
+          <h2>Ничьи</h2>
+          <div id="draws" class="value">0</div>
+        </div>
+        <div class="card">
+          <h2>Поражения</h2>
+          <div id="losses" class="value">0</div>
+        </div>
+      </section>
+
+      <section class="buttons">
+        <button class="choice" data-move="rock" aria-label="Камень">
+          <span class="icon">🪨</span> Камень <kbd>R</kbd>
+        </button>
+        <button class="choice" data-move="paper" aria-label="Бумага">
+          <span class="icon">📄</span> Бумага <kbd>P</kbd>
+        </button>
+        <button class="choice" data-move="scissors" aria-label="Ножницы">
+          <span class="icon">✂️</span> Ножницы <kbd>S</kbd>
+        </button>
+      </section>
+
+      <section class="result" id="result" aria-live="polite"></section>
+
+      <div class="bar">
+        <div class="left">
+          <span class="pill" id="lastHuman">—</span>
+          <span class="pill" id="lastCPU">—</span>
+        </div>
+        <span class="pill" id="rounds">Раундов: 0</span>
+      </div>
+
+      <footer>
+        Логика вынесена в чистые функции — удобно для автотестов freeCodeCamp.
+      </footer>
+    </main>
+
+    <script>
+      const MOVES = /** @type const */ (["rock", "paper", "scissors"]);
+      function cpuMove() {
+        return MOVES[Math.floor(Math.random() * MOVES.length)];
+      }
+
+      function judge(human, cpu) {
+        if (human === cpu) return "draw";
+        const wins = {
+          rock: "scissors",
+          paper: "rock",
+          scissors: "paper",
+        };
+        return wins[human] === cpu ? "win" : "lose";
+      }
+
+      if (typeof window !== "undefined") {
+        window.__RPS__ = { cpuMove, judge };
+      }
+
+      const $ = (sel) => document.querySelector(sel);
+      const winsEl = $("#wins");
+      const drawsEl = $("#draws");
+      const lossesEl = $("#losses");
+      const resultEl = $("#result");
+      const lastHumanEl = $("#lastHuman");
+      const lastCPUel = $("#lastCPU");
+      const roundsEl = $("#rounds");
+
+      const state = {
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        rounds: 0,
+        lastHuman: null,
+        lastCPU: null,
+      };
+
+      const ICON = { rock: "🪨", paper: "📄", scissors: "✂️" };
+      const NAME = { rock: "Камень", paper: "Бумага", scissors: "Ножницы" };
+
+      function updateUI(status) {
+        winsEl.textContent = state.wins;
+        drawsEl.textContent = state.draws;
+        lossesEl.textContent = state.losses;
+        roundsEl.textContent = `Раундов: ${state.rounds}`;
+        lastHumanEl.textContent = state.lastHuman
+          ? `Вы: ${ICON[state.lastHuman]} ${NAME[state.lastHuman]}`
+          : "—";
+        lastCPUel.textContent = state.lastCPU
+          ? `ПК: ${ICON[state.lastCPU]} ${NAME[state.lastCPU]}`
+          : "—";
+        if (!status) {
+          resultEl.textContent = "";
+          return;
+        }
+
+        const map = {
+          win: ["Победа", "win"],
+          lose: ["Поражение", "lose"],
+          draw: ["Ничья", "draw"],
+        };
+        const [label, cls] = map[status];
+        resultEl.innerHTML = `Результат: <span class="status ${cls}">${label}</span>`;
+      }
+
+      function play(human) {
+        const cpu = cpuMove();
+        const status = judge(human, cpu);
+        state.rounds++;
+        state.lastHuman = human;
+        state.lastCPU = cpu;
+        if (status === "win") state.wins++;
+        else if (status === "lose") state.losses++;
+        else state.draws++;
+        updateUI(status);
+      }
+
+      function reset() {
+        Object.assign(state, {
+          wins: 0,
+          draws: 0,
+          losses: 0,
+          rounds: 0,
+          lastHuman: null,
+          lastCPU: null,
+        });
+        updateUI();
+      }
+
+      document.querySelectorAll("button.choice").forEach((btn) => {
+        btn.addEventListener("click", () => play(btn.dataset.move));
+      });
+
+      window.addEventListener("keydown", (e) => {
+        const k = e.key.toLowerCase();
+        if (k === "r") play("rock");
+        else if (k === "p") play("paper");
+        else if (k === "s") play("scissors");
+      });
+
+      document.getElementById("resetBtn").addEventListener("click", reset);
+
+      updateUI();
+    </script>
   </body>
 </html>
